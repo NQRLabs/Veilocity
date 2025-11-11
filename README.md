@@ -33,9 +33,14 @@ Veilocity is a web-based tool for creating motion-defined text using random-dot 
   - Play/Pause controls
   - Reset to beginning
 - **Video Export**:
-  - Record complete scroll cycle
-  - Download as WebM video
-  - Automatic stop after one full cycle
+  - Frame-by-frame recording for perfect quality
+  - Selectable frame rate (24/30/60 FPS)
+  - Container format options:
+    - WebM (VP9/VP8) - Universal browser support
+    - MP4 (H.264) - Professional editing compatibility (Chrome/Edge)
+  - 15 Mbps bitrate for high quality
+  - Records one complete scroll cycle
+  - Progress indicator during recording
 
 ## How to Use
 
@@ -55,10 +60,14 @@ Veilocity is a web-based tool for creating motion-defined text using random-dot 
    - The text will scroll from left to right
    - Text is visible through coherent dot motion
    - Pause to see it disappear into noise
-6. **Export**:
-   - Click "Start Recording" to capture video
-   - Recording captures one complete scroll cycle
-   - Download as WebM file when complete
+6. **Configure Recording**:
+   - Frame Rate: Choose 24 FPS (cinematic), 30 FPS (standard), or 60 FPS (smooth)
+   - Video Container: Select WebM (all browsers) or MP4 (Chrome/Edge, best for editors)
+7. **Export**:
+   - Click "Start Recording" to begin frame-by-frame capture
+   - Watch progress indicator showing percentage and frame count
+   - Recording automatically stops after one complete scroll cycle
+   - File downloads as .webm or .mp4 depending on selected format
 
 ## Technical Details
 
@@ -78,16 +87,31 @@ Veilocity exploits the human visual system's sensitivity to coherent motion. Whe
 
 - Runs entirely in the browser
 - No server-side processing
-- Canvas-based rendering at 60 fps
-- WebM video export via MediaRecorder API
-- Efficient dot rendering and mask checking
+- Canvas-based rendering with frame rate control (24/30/60 FPS)
+- Frame-by-frame recording for consistent output quality
+- Direct ImageData buffer manipulation for fast rendering
+- Mask caching with threshold-based regeneration
+- Efficient dot rendering with loop unrolling for common sizes
 
 ## Browser Compatibility
 
 - Modern browsers with Canvas API support
-- MediaRecorder API required for video export (Chrome, Firefox, Edge)
+- MediaRecorder API required for video export
 - FontFace API for custom font loading
-- Tested on Chrome 120+, Firefox 120+, Edge 120+
+
+### Video Export Compatibility
+
+| Browser | WebM (VP9/VP8) | MP4 (H.264) |
+|---------|----------------|-------------|
+| Chrome 120+ | ✅ Yes | ✅ Yes |
+| Edge 120+ | ✅ Yes | ✅ Yes |
+| Firefox 120+ | ✅ Yes | ❌ No |
+| Safari | ❌ Limited | ✅ Yes (macOS/iOS) |
+
+**Recommendations:**
+- **For DaVinci Resolve / Adobe Premiere Pro**: Use MP4 format in Chrome/Edge
+- **For universal compatibility**: Use WebM format
+- **Safari users**: Limited video export support (Safari has incomplete MediaRecorder implementation)
 
 ## Privacy & Security
 
@@ -108,20 +132,31 @@ Veilocity exploits the human visual system's sensitivity to coherent motion. Whe
 
 - **Language**: Pure HTML5, CSS3, JavaScript (ES6+)
 - **APIs Used**:
-  - Canvas API (2D rendering)
-  - MediaRecorder API (video capture)
+  - Canvas API (2D rendering with direct ImageData manipulation)
+  - MediaRecorder API (video capture with manual frame control)
   - FontFace API (custom font loading)
   - FileReader API (font file upload)
-- **Video Format**: WebM with VP9 codec
-- **Recording**: 30 fps, 5 Mbps bitrate
+- **Video Formats**:
+  - WebM container with VP9 or VP8 codec
+  - MP4 container with H.264 codec (browser-dependent)
+- **Recording**:
+  - Frame rates: 24, 30, or 60 FPS (user-selectable)
+  - Bitrate: 15 Mbps for high quality
+  - Method: Frame-by-frame capture with `requestFrame()` for precise timing
+  - Aspect ratios: 16:9 (1920x1080), 16:10 (1920x1200), 4:3 (1024x768), 1:1 (1080x1080), 9:16 (1080x1920)
 - **No Build Process**: Direct file editing, no transpilation
+- **No Dependencies**: Zero third-party libraries
 
 ## Known Limitations
 
-- Video recording requires MediaRecorder API (not available in Safari)
-- Large dot densities (5000+) may impact performance on slower devices
-- Custom font files must be valid TTF/OTF/WOFF/WOFF2 formats
-- Recording captures exactly one scroll cycle (from off-screen left to off-screen right)
+- **Video Recording**: Requires MediaRecorder API
+  - Safari has limited/incomplete MediaRecorder support
+  - MP4 export only available in Chrome/Edge (Firefox supports WebM only)
+- **Performance**: High dot densities (>50%) may impact performance on slower devices
+- **Custom Fonts**: Must be valid TTF/OTF/WOFF/WOFF2 format files
+- **Recording Scope**: Captures exactly one scroll cycle (text entering from right, exiting left)
+- **Container Formats**: Limited to browser-native MediaRecorder support (WebM and MP4 only)
+  - For other formats (AVI, MOV, etc.), export would require third-party encoding libraries
 
 ## License
 

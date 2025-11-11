@@ -481,6 +481,15 @@
     </div>
 
     <div class="control-group">
+      <label class="control-label">Video Container</label>
+      <select id="containerFormat">
+        <option value="webm" selected>WebM (VP9/VP8)</option>
+        <option value="mp4">MP4 (H.264)</option>
+      </select>
+      <div class="info-hint" id="containerHint">Universal compatibility</div>
+    </div>
+
+    <div class="control-group">
       <label class="control-label">Playback Controls</label>
       <div class="play-controls">
         <button id="playButton">▶ Play</button>
@@ -556,6 +565,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       lastFrameTime: 0, // Timestamp of last frame
       frameInterval: 1000 / 30, // Milliseconds between frames
 
+      // Container format
+      containerFormat: 'webm', // 'webm' or 'mp4'
+      supportedFormats: {}, // Detected browser support
+
       // Mask scroll state (RIGHT TO LEFT)
       maskScrollX: 0, // Current X position of mask
       scrollStartX: 0, // Start position (off-screen right)
@@ -569,6 +582,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       mediaRecorder: null,
       recordedChunks: [],
       isRecording: false,
+      recordingVideoTrack: null,
+      recordingFrameCount: 0,
+      recordingTotalFrames: 0,
 
       // Performance optimizations
       maskCache: null, // Cached mask ImageData
@@ -583,6 +599,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
           alpha: false // Slight performance gain
         });
 
+        this.detectFormatSupport();
         this.setupAspectRatio();
         this.setupControls();
         this.initializeDots();
@@ -593,6 +610,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
         this.reset();
         this.render();
+      },
+
+      detectFormatSupport() {
+        // Check for WebM support
+        this.supportedFormats.webm = {
+          vp9: MediaRecorder.isTypeSupported('video/webm;codecs=vp9'),
+          vp8: MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
+        };
+
+        // Check for MP4 support
+        this.supportedFormats.mp4 = {
+          h264: MediaRecorder.isTypeSupported('video/mp4;codecs=h264') ||
+                MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')
+        };
+
+        // Disable unsupported formats in the UI
+        const containerSelect = document.getElementById('containerFormat');
+        const mp4Option = containerSelect.querySelector('option[value="mp4"]');
+
+        if (!this.supportedFormats.mp4.h264) {
+          mp4Option.disabled = true;
+          mp4Option.textContent += ' (Not supported in this browser)';
+          document.getElementById('containerHint').textContent =
+            'MP4 not supported - use Chrome/Edge for MP4 export';
+        }
       },
 
       setupAspectRatio() {
@@ -723,6 +765,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         document.getElementById('frameRate').addEventListener('change', (e) => {
           this.frameRate = parseInt(e.target.value);
           this.frameInterval = 1000 / this.frameRate;
+        });
+
+        // Container format
+        document.getElementById('containerFormat').addEventListener('change', (e) => {
+          this.containerFormat = e.target.value;
         });
 
         // Playback controls
@@ -918,7 +965,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       animate(timestamp = 0) {
         if (!this.isPlaying) return;
 
-        // Frame rate limiting
+        // Preview mode: frame rate limiting for performance
         const elapsed = timestamp - this.lastFrameTime;
 
         // Only update and render if enough time has passed for target FPS
@@ -937,15 +984,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         // Update mask scroll position (RIGHT TO LEFT)
         this.maskScrollX -= this.maskScrollSpeed;
 
-        // Check if we've completed a full cycle
+        // Check if we've completed a full cycle (preview mode only loops)
         if (this.maskScrollX < this.scrollEndX) {
           this.maskScrollX = this.scrollStartX;
           this.maskCache = null; // Invalidate mask cache at loop
-
-          // If recording, stop after one complete cycle
-          if (this.isRecording) {
-            this.stopRecording();
-          }
         }
 
         // Update ALL foreground dots - they always drift left
@@ -1128,13 +1170,36 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         if (this.isRecording) return;
 
         try {
-          const stream = this.canvas.captureStream(this.frameRate); // Use selected FPS
+          // Calculate total frames needed for one complete scroll cycle
+          const scrollDistance = this.scrollStartX - this.scrollEndX;
+          const framesNeeded = Math.ceil(scrollDistance / this.maskScrollSpeed);
+          this.recordingTotalFrames = framesNeeded;
+          this.recordingFrameCount = 0;
 
-          // Try VP9 first, fall back to VP8
-          // Increased bitrate to 15 Mbps to reduce banding in noise and mask edges
-          let options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 };
-          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 15000000 };
+          // Use captureStream(0) for manual frame control
+          const stream = this.canvas.captureStream(0);
+          this.recordingVideoTrack = stream.getVideoTracks()[0];
+
+          // Select codec based on container format
+          let options;
+          if (this.containerFormat === 'mp4') {
+            // MP4 with H.264
+            if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) {
+              options = { mimeType: 'video/mp4;codecs=h264', videoBitsPerSecond: 15000000 };
+            } else if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
+              options = { mimeType: 'video/mp4;codecs=avc1', videoBitsPerSecond: 15000000 };
+            } else {
+              throw new Error('MP4 format not supported by this browser');
+            }
+          } else {
+            // WebM - try VP9 first, fall back to VP8
+            if (this.supportedFormats.webm.vp9) {
+              options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 };
+            } else if (this.supportedFormats.webm.vp8) {
+              options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 15000000 };
+            } else {
+              throw new Error('WebM format not supported by this browser');
+            }
           }
 
           this.mediaRecorder = new MediaRecorder(stream, options);
@@ -1149,6 +1214,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
           this.mediaRecorder.onstop = () => {
             this.downloadRecording();
+            this.recordingVideoTrack = null;
           };
 
           this.mediaRecorder.start();
@@ -1159,9 +1225,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
           document.getElementById('recordButton').disabled = true;
           document.getElementById('stopRecordButton').disabled = false;
 
-          // Reset and play
+          // Reset to start position
           this.reset();
-          this.play();
+
+          // Start frame-by-frame rendering
+          this.renderNextFrame();
 
         } catch (error) {
           console.error('Failed to start recording:', error);
@@ -1169,25 +1237,66 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         }
       },
 
+      renderNextFrame() {
+        if (!this.isRecording || this.recordingFrameCount >= this.recordingTotalFrames) {
+          // Recording complete
+          if (this.isRecording) {
+            this.stopRecording();
+          }
+          return;
+        }
+
+        // Update animation state
+        this.update();
+
+        // Render the frame
+        this.render();
+
+        // Request this frame to be captured
+        if (this.recordingVideoTrack) {
+          this.recordingVideoTrack.requestFrame();
+        }
+
+        this.recordingFrameCount++;
+
+        // Update progress indicator
+        const progress = Math.round((this.recordingFrameCount / this.recordingTotalFrames) * 100);
+        document.getElementById('recordingIndicator').textContent =
+          `● RECORDING ${progress}% (${this.recordingFrameCount}/${this.recordingTotalFrames} frames)`;
+
+        // Schedule next frame at exact FPS interval
+        const frameTime = 1000 / this.frameRate;
+        setTimeout(() => this.renderNextFrame(), frameTime);
+      },
+
       stopRecording() {
         if (!this.isRecording) return;
 
         this.isRecording = false;
-        this.mediaRecorder.stop();
-        this.pause();
+
+        // Stop the MediaRecorder
+        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+          this.mediaRecorder.stop();
+        }
 
         // Update UI
-        document.getElementById('recordingIndicator').classList.remove('active');
+        const indicator = document.getElementById('recordingIndicator');
+        indicator.classList.remove('active');
+        indicator.textContent = '● RECORDING';
         document.getElementById('recordButton').disabled = false;
         document.getElementById('stopRecordButton').disabled = true;
       },
 
       downloadRecording() {
-        const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+        // Determine MIME type and extension based on container format
+        const mimeType = this.containerFormat === 'mp4' ? 'video/mp4' : 'video/webm';
+        const extension = this.containerFormat === 'mp4' ? 'mp4' : 'webm';
+
+        const blob = new Blob(this.recordedChunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `veilocity_${this.aspectRatio.replace(':', 'x')}_${Date.now()}.webm`;
+        a.download = `veilocity_${this.aspectRatio.replace(':', 'x')}_${this.frameRate}fps_${Date.now()}.${extension}`;
         a.click();
         URL.revokeObjectURL(url);
       }
