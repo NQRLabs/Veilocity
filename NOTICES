@@ -1,0 +1,40 @@
+THIRD-PARTY SOFTWARE NOTICES
+================================
+
+Veilocity uses NO third-party libraries or dependencies.
+
+This software is built entirely with:
+- Pure HTML5
+- Pure CSS3
+- Pure JavaScript (Vanilla ES6+)
+
+All code is original work by NQR or uses standard browser APIs:
+- Canvas API (W3C standard)
+- MediaRecorder API (W3C standard)
+- FontFace API (W3C standard)
+- FileReader API (W3C standard)
+- Web APIs (standard browser features)
+
+No external libraries, frameworks, or dependencies are included.
+No CDN resources are loaded.
+No npm packages are used.
+
+All code is licensed under the MIT License (see LICENSE file).
+
+---
+
+Random-Dot Kinematogram Technique:
+The motion-defined text technique used in this software is based on
+random-dot kinematograms (RDK), a classic psychophysics paradigm
+developed in vision science research. The RDK technique itself is
+in the public domain and has been widely used in perception research
+since the 1960s.
+
+References:
+- Julesz, B. (1971). Foundations of Cyclopean Perception.
+- Newsome, W. T., & Pare, E. B. (1988). "A selective impairment of
+  motion perception following lesions of the middle temporal visual
+  area (MT)." Journal of Neuroscience.
+
+The implementation in Veilocity is original and does not use any
+existing RDK library code.

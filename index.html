@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    MIT License
+
+    Copyright (c) 2025 NQR
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+  -->
+  <!-- Favicons (browser tabs, bookmarks) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
+
+  <!-- iOS & iPadOS (home screen icon) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon-180x180.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veilocity - Messages in Motion</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+    }
+
+    #control-panel {
+      width: 320px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 2px solid #00d4ff;
+      box-shadow: 4px 0 20px rgba(0, 212, 255, 0.3);
+    }
+
+    #canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #canvas {
+      display: block;
+      background: #000;
+    }
+
+    .logo-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    }
+
+    .logo-header img {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 10px;
+    }
+
+    .logo-header h1 {
+      font-size: 24px;
+      color: #00d4ff;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      margin-bottom: 5px;
+    }
+
+    .logo-header .tagline {
+      font-size: 12px;
+      color: #00ff88;
+      font-style: italic;
+      text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-label {
+      display: block;
+      font-size: 12px;
+      color: #00d4ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="range"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    input[type="range"] {
+      padding: 0;
+      height: 6px;
+      background: rgba(0, 212, 255, 0.2);
+      outline: none;
+      border-radius: 3px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #00d4ff;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #00d4ff;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
+      border: none;
+    }
+
+    .range-value {
+      display: block;
+      font-size: 11px;
+      color: #b0b0b0;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #00d4ff 0%, #0088ff 100%);
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 212, 255, 0.3);
+      margin-bottom: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 212, 255, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.secondary {
+      background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .file-input-button {
+      width: 100%;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 4px;
+      color: #00d4ff;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .file-input-button:hover {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: #00d4ff;
+    }
+
+    .play-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .play-controls button {
+      flex: 1;
+    }
+
+    .recording-indicator {
+      display: none;
+      padding: 8px;
+      background: rgba(255, 0, 0, 0.2);
+      border: 1px solid #ff0000;
+      border-radius: 4px;
+      color: #ff5555;
+      font-size: 11px;
+      text-align: center;
+      margin-bottom: 10px;
+      animation: pulse 1s infinite;
+    }
+
+    .recording-indicator.active {
+      display: block;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* License modal styles */
+    .license-footer {
+      margin-top: 30px;
+      margin-bottom: 20px;
+      padding: 10px 8px;
+      font-size: 0.68rem;
+      color: #a9a9b2;
+      opacity: 0.7;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+      text-align: center;
+    }
+
+    .license-footer:hover { opacity: 1; }
+
+    .license-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 999;
+    }
+
+    .license-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #0f0f16;
+      border: 2px solid rgba(0,212,255,0.35);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 520px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      z-index: 1000;
+      text-align: center;
+    }
+
+    .license-modal.show,
+    .license-overlay.show {
+      display: block;
+    }
+
+    .license-modal-header {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-right: 32px;
+      gap: 12px;
+    }
+
+    .license-modal-title {
+      font-size: 18px;
+      color: #00d4ff;
+      margin-bottom: 15px;
+    }
+
+    .license-modal-text {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #b0b0b0;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    .license-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,0,0,0.15);
+      border: 1px solid rgba(255,0,0,0.3);
+      color: #ff5555;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .license-close:hover {
+      background: rgba(255,0,0,0.3);
+      border-color: #ff5555;
+    }
+
+    .info-hint {
+      font-size: 10px;
+      color: #808080;
+      font-style: italic;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="control-panel">
+    <div class="logo-header">
+      <img src="assets/images/logo.png" alt="Veilocity Logo" onerror="this.style.display='none'">
+      <h1>Veilocity</h1>
+      <div class="tagline">Messages in Motion</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Aspect Ratio</label>
+      <select id="aspectRatio">
+        <option value="16:9" selected>16:9 (1920x1080)</option>
+        <option value="16:10">16:10 (1920x1200)</option>
+        <option value="4:3">4:3 (1024x768)</option>
+        <option value="1:1">1:1 (1080x1080)</option>
+        <option value="9:16">9:16 Portrait (1080x1920)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Message Text</label>
+      <textarea id="messageText">HIDDEN MESSAGE</textarea>
+      <div class="info-hint">Text visible only through motion</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Font Family</label>
+      <select id="fontFamily">
+        <option value="Arial" selected>Arial</option>
+        <option value="Helvetica">Helvetica</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Courier New">Courier New</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Impact">Impact</option>
+        <option value="Comic Sans MS">Comic Sans MS</option>
+        <option value="custom">Custom Font File...</option>
+      </select>
+    </div>
+
+    <div class="control-group" id="customFontGroup" style="display: none;">
+      <label class="control-label">Upload Custom Font</label>
+      <div class="file-input-wrapper">
+        <input type="file" id="customFontFile" accept=".ttf,.otf,.woff,.woff2">
+        <div class="file-input-button" id="fontFileButton">Choose Font File</div>
+      </div>
+      <div class="info-hint">Supported: TTF, OTF, WOFF, WOFF2</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Font Size</label>
+      <input type="range" id="fontSize" min="24" max="500" value="200" step="4">
+      <span class="range-value" id="fontSizeValue">200px</span>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Vertical Position</label>
+      <input type="range" id="verticalPosition" min="0" max="100" value="50" step="1">
+      <span class="range-value" id="verticalPositionValue">50% (Center)</span>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Text Mask Drift Speed</label>
+      <input type="range" id="maskDriftSpeed" min="0" max="30" value="6" step="0.5">
+      <span class="range-value" id="maskDriftSpeedValue">6.0 px/frame</span>
+      <div class="info-hint">Speed of dots inside text mask</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Mask Scroll Speed</label>
+      <input type="range" id="maskScrollSpeed" min="0.5" max="50" value="10" step="0.5">
+      <span class="range-value" id="maskScrollSpeedValue">10.0 px/frame</span>
+      <div class="info-hint">Speed of text mask movement</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Background Noise Type</label>
+      <select id="noiseType">
+        <option value="white" selected>White Noise (Random)</option>
+        <option value="static">Static Drift</option>
+        <option value="none">None (Still)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Dot Density</label>
+      <input type="range" id="dotDensity" min="1" max="100" value="10" step="1">
+      <span class="range-value" id="dotDensityValue">10% coverage</span>
+      <div class="info-hint">Percentage of pixels that are dots</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Dot Size</label>
+      <input type="range" id="dotSize" min="1" max="5" value="2" step="0.5">
+      <span class="range-value" id="dotSizeValue">2.0 px</span>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Frame Rate (FPS)</label>
+      <select id="frameRate">
+        <option value="24">24 FPS (Cinematic)</option>
+        <option value="30" selected>30 FPS (Standard)</option>
+        <option value="60">60 FPS (Smooth)</option>
+      </select>
+      <div class="info-hint">Synced for preview and recording</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Playback Controls</label>
+      <div class="play-controls">
+        <button id="playButton">▶ Play</button>
+        <button id="pauseButton">⏸ Pause</button>
+      </div>
+      <button id="resetButton" class="secondary">↻ Reset</button>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Recording</label>
+      <div class="recording-indicator" id="recordingIndicator">● RECORDING</div>
+      <button id="recordButton">⏺ Start Recording</button>
+      <button id="stopRecordButton" disabled>⏹ Stop & Download</button>
+      <div class="info-hint">Records one complete scroll cycle</div>
+    </div>
+
+    <div class="license-footer" id="licenseFooter">
+      MIT License © 2025 NQR &middot; Click to view
+    </div>
+  </div>
+
+  <div id="canvas-container">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- License Modal -->
+  <div class="license-overlay" id="licenseOverlay"></div>
+  <div class="license-modal" id="licenseModal">
+    <div class="license-modal-header">
+      <h2 class="license-modal-title">MIT License</h2>
+      <div class="license-close" id="licenseClose">×</div>
+    </div>
+    <div class="license-modal-text">Copyright (c) 2025 NQR
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    </div>
+  </div>
+
+  <script>
+    const app = {
+      canvas: null,
+      ctx: null,
+      width: 1920,
+      height: 1080,
+      aspectRatio: '16:9',
+      isPlaying: false,
+      animationId: null,
+
+      // Text mask properties
+      messageText: 'HIDDEN MESSAGE',
+      fontFamily: 'Arial',
+      fontSize: 200,
+      customFontLoaded: false,
+      customFontFamily: null,
+
+      // Dot properties
+      foregroundDots: [], // Dots inside text mask (coherent drift)
+      backgroundDots: [], // Background dots (regenerating or drifting)
+      dotDensity: 10, // Percentage (1-100) - optimized for performance
+      dotSize: 2,
+
+      // Motion properties
+      maskDriftSpeed: 6, // Speed of dots inside mask (left direction)
+      maskScrollSpeed: 10, // Speed of mask movement (right to left)
+      verticalPosition: 0.5, // 0-1, vertical placement of text
+
+      // Frame rate control
+      frameRate: 30, // Target FPS for preview and recording
+      lastFrameTime: 0, // Timestamp of last frame
+      frameInterval: 1000 / 30, // Milliseconds between frames
+
+      // Mask scroll state (RIGHT TO LEFT)
+      maskScrollX: 0, // Current X position of mask
+      scrollStartX: 0, // Start position (off-screen right)
+      scrollEndX: 0, // End position (off-screen left)
+
+      // Background noise
+      noiseType: 'white', // 'white', 'static', 'none'
+      backgroundDriftSpeed: 0.5,
+
+      // Recording
+      mediaRecorder: null,
+      recordedChunks: [],
+      isRecording: false,
+
+      // Performance optimizations
+      maskCache: null, // Cached mask ImageData
+      lastMaskScrollX: null, // Last scroll position mask was generated at
+      maskUpdateThreshold: 0.5, // Only regenerate mask if scroll moved this much
+      frameBuffer: null, // ImageData buffer for fast rendering
+
+      init() {
+        this.canvas = document.getElementById('canvas');
+        this.ctx = this.canvas.getContext('2d', {
+          willReadFrequently: true,
+          alpha: false // Slight performance gain
+        });
+
+        this.setupAspectRatio();
+        this.setupControls();
+        this.initializeDots();
+        this.calculateScrollBounds();
+
+        // Pre-allocate frame buffer for fast rendering
+        this.frameBuffer = this.ctx.createImageData(this.width, this.height);
+
+        this.reset();
+        this.render();
+      },
+
+      setupAspectRatio() {
+        const aspectRatios = {
+          '16:9': { width: 1920, height: 1080 },
+          '16:10': { width: 1920, height: 1200 },
+          '4:3': { width: 1024, height: 768 },
+          '1:1': { width: 1080, height: 1080 },
+          '9:16': { width: 1080, height: 1920 }
+        };
+
+        const ratio = aspectRatios[this.aspectRatio];
+        this.width = ratio.width;
+        this.height = ratio.height;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+
+        // Scale canvas to fit container while maintaining aspect ratio
+        this.scaleCanvas();
+
+        // Invalidate caches
+        this.maskCache = null;
+        this.frameBuffer = null;
+      },
+
+      scaleCanvas() {
+        const container = document.getElementById('canvas-container');
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        const scaleX = containerWidth / this.width;
+        const scaleY = containerHeight / this.height;
+        const scale = Math.min(scaleX, scaleY);
+
+        this.canvas.style.width = (this.width * scale) + 'px';
+        this.canvas.style.height = (this.height * scale) + 'px';
+      },
+
+      setupControls() {
+        // Aspect ratio
+        document.getElementById('aspectRatio').addEventListener('change', (e) => {
+          this.aspectRatio = e.target.value;
+          this.setupAspectRatio();
+          this.frameBuffer = this.ctx.createImageData(this.width, this.height);
+          this.initializeDots();
+          this.calculateScrollBounds();
+          this.reset();
+        });
+
+        // Message text
+        document.getElementById('messageText').addEventListener('input', (e) => {
+          this.messageText = e.target.value;
+          this.maskCache = null; // Invalidate mask cache
+          this.updateTextMask();
+        });
+
+        // Font family
+        document.getElementById('fontFamily').addEventListener('change', (e) => {
+          if (e.target.value === 'custom') {
+            document.getElementById('customFontGroup').style.display = 'block';
+          } else {
+            document.getElementById('customFontGroup').style.display = 'none';
+            this.fontFamily = e.target.value;
+            this.customFontLoaded = false;
+            this.maskCache = null;
+            this.updateTextMask();
+          }
+        });
+
+        // Custom font upload
+        document.getElementById('customFontFile').addEventListener('change', (e) => {
+          this.loadCustomFont(e.target.files[0]);
+        });
+
+        document.getElementById('fontFileButton').addEventListener('click', () => {
+          document.getElementById('customFontFile').click();
+        });
+
+        // Font size
+        document.getElementById('fontSize').addEventListener('input', (e) => {
+          this.fontSize = parseInt(e.target.value);
+          document.getElementById('fontSizeValue').textContent = this.fontSize + 'px';
+          this.maskCache = null;
+          this.updateTextMask();
+        });
+
+        // Vertical position
+        document.getElementById('verticalPosition').addEventListener('input', (e) => {
+          this.verticalPosition = parseInt(e.target.value) / 100;
+          document.getElementById('verticalPositionValue').textContent =
+            e.target.value + '% ' + (this.verticalPosition === 0.5 ? '(Center)' : '');
+          this.maskCache = null;
+        });
+
+        // Mask drift speed
+        document.getElementById('maskDriftSpeed').addEventListener('input', (e) => {
+          this.maskDriftSpeed = parseFloat(e.target.value);
+          document.getElementById('maskDriftSpeedValue').textContent =
+            this.maskDriftSpeed.toFixed(1) + ' px/frame';
+        });
+
+        // Mask scroll speed
+        document.getElementById('maskScrollSpeed').addEventListener('input', (e) => {
+          this.maskScrollSpeed = parseFloat(e.target.value);
+          document.getElementById('maskScrollSpeedValue').textContent =
+            this.maskScrollSpeed.toFixed(1) + ' px/frame';
+        });
+
+        // Noise type
+        document.getElementById('noiseType').addEventListener('change', (e) => {
+          this.noiseType = e.target.value;
+        });
+
+        // Dot density
+        document.getElementById('dotDensity').addEventListener('input', (e) => {
+          this.dotDensity = parseInt(e.target.value);
+          document.getElementById('dotDensityValue').textContent = this.dotDensity + '% coverage';
+          this.initializeDots();
+        });
+
+        // Dot size
+        document.getElementById('dotSize').addEventListener('input', (e) => {
+          this.dotSize = parseFloat(e.target.value);
+          document.getElementById('dotSizeValue').textContent = this.dotSize.toFixed(1) + ' px';
+        });
+
+        // Frame rate
+        document.getElementById('frameRate').addEventListener('change', (e) => {
+          this.frameRate = parseInt(e.target.value);
+          this.frameInterval = 1000 / this.frameRate;
+        });
+
+        // Playback controls
+        document.getElementById('playButton').addEventListener('click', () => this.play());
+        document.getElementById('pauseButton').addEventListener('click', () => this.pause());
+        document.getElementById('resetButton').addEventListener('click', () => this.reset());
+
+        // Recording controls
+        document.getElementById('recordButton').addEventListener('click', () => this.startRecording());
+        document.getElementById('stopRecordButton').addEventListener('click', () => this.stopRecording());
+
+        // License modal
+        document.getElementById('licenseFooter').addEventListener('click', () => {
+          document.getElementById('licenseModal').classList.add('show');
+          document.getElementById('licenseOverlay').classList.add('show');
+        });
+
+        const closeLicense = () => {
+          document.getElementById('licenseModal').classList.remove('show');
+          document.getElementById('licenseOverlay').classList.remove('show');
+        };
+
+        document.getElementById('licenseClose').addEventListener('click', closeLicense);
+        document.getElementById('licenseOverlay').addEventListener('click', closeLicense);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+          this.scaleCanvas();
+        });
+      },
+
+      loadCustomFont(file) {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const fontName = 'CustomFont_' + Date.now();
+          const fontFace = new FontFace(fontName, `url(${e.target.result})`);
+
+          fontFace.load().then((loaded) => {
+            document.fonts.add(loaded);
+            this.fontFamily = fontName;
+            this.customFontLoaded = true;
+            this.customFontFamily = fontName;
+            document.getElementById('fontFileButton').textContent = file.name;
+            this.maskCache = null;
+            this.updateTextMask();
+          }).catch((error) => {
+            console.error('Error loading font:', error);
+            alert('Failed to load custom font. Please try a different file.');
+          });
+        };
+        reader.readAsDataURL(file);
+      },
+
+      initializeDots() {
+        // Calculate number of dots based on percentage
+        const totalPixels = this.width * this.height;
+        const numDots = Math.floor((totalPixels * this.dotDensity) / 100);
+
+        // Initialize ALL dots with random positions
+        this.foregroundDots = [];
+        for (let i = 0; i < numDots; i++) {
+          this.foregroundDots.push({
+            x: Math.random() * this.width,
+            y: Math.random() * this.height,
+            brightness: 128 + Math.random() * 127 // 128-255
+          });
+        }
+
+        this.backgroundDots = [];
+        for (let i = 0; i < numDots; i++) {
+          this.backgroundDots.push({
+            x: Math.random() * this.width,
+            y: Math.random() * this.height,
+            brightness: 128 + Math.random() * 127
+          });
+        }
+      },
+
+      calculateScrollBounds() {
+        // Measure text width to calculate proper scroll bounds
+        const measureCtx = document.createElement('canvas').getContext('2d');
+        const font = `bold ${this.fontSize}px ${this.fontFamily}`;
+        measureCtx.font = font;
+
+        // Measure all lines and get max width
+        const lines = this.messageText.split('\n');
+        let maxTextWidth = 0;
+        lines.forEach(line => {
+          const metrics = measureCtx.measureText(line);
+          maxTextWidth = Math.max(maxTextWidth, metrics.width);
+        });
+
+        // Calculate text height
+        const lineHeight = this.fontSize * 1.2;
+        const totalTextHeight = lines.length * lineHeight;
+
+        // Start: fully off-screen to the right (text + margin)
+        this.scrollStartX = this.width + maxTextWidth / 2 + 100;
+
+        // End: fully off-screen to the left (text + margin)
+        this.scrollEndX = -maxTextWidth / 2 - 100;
+      },
+
+      updateTextMask() {
+        // Text mask will be updated in render loop
+        this.calculateScrollBounds();
+      },
+
+      getMaskImageData() {
+        // Check if we can use cached mask
+        if (this.maskCache && this.lastMaskScrollX !== null) {
+          const scrollDiff = Math.abs(this.maskScrollX - this.lastMaskScrollX);
+          if (scrollDiff < this.maskUpdateThreshold) {
+            return this.maskCache;
+          }
+        }
+
+        // Need to regenerate mask
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = this.width;
+        maskCanvas.height = this.height;
+        const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+
+        // Clear mask
+        maskCtx.clearRect(0, 0, this.width, this.height);
+
+        // Draw text
+        const font = `bold ${this.fontSize}px ${this.fontFamily}`;
+        maskCtx.font = font;
+        maskCtx.fillStyle = 'white';
+        maskCtx.textAlign = 'center';
+        maskCtx.textBaseline = 'middle';
+
+        const centerY = this.height * this.verticalPosition;
+
+        // Support multi-line text
+        const lines = this.messageText.split('\n');
+        const lineHeight = this.fontSize * 1.2;
+        const startY = centerY - ((lines.length - 1) * lineHeight) / 2;
+
+        lines.forEach((line, index) => {
+          maskCtx.fillText(line, this.maskScrollX, startY + (index * lineHeight));
+        });
+
+        // Cache the mask
+        this.maskCache = maskCtx.getImageData(0, 0, this.width, this.height);
+        this.lastMaskScrollX = this.maskScrollX;
+
+        return this.maskCache;
+      },
+
+      isPointInMask(x, y, maskData) {
+        const px = Math.floor(x);
+        const py = Math.floor(y);
+
+        if (px < 0 || px >= this.width || py < 0 || py >= this.height) {
+          return false;
+        }
+
+        const index = (py * this.width + px) * 4;
+        // Check alpha channel
+        return maskData[index + 3] > 128;
+      },
+
+      play() {
+        if (this.isPlaying) return;
+        this.isPlaying = true;
+        this.lastFrameTime = performance.now();
+        this.animate();
+      },
+
+      pause() {
+        this.isPlaying = false;
+        if (this.animationId) {
+          cancelAnimationFrame(this.animationId);
+          this.animationId = null;
+        }
+      },
+
+      reset() {
+        this.pause();
+        this.maskScrollX = this.scrollStartX;
+        this.maskCache = null; // Clear mask cache
+
+        // Reinitialize dots to random positions
+        this.initializeDots();
+
+        this.render();
+      },
+
+      animate(timestamp = 0) {
+        if (!this.isPlaying) return;
+
+        // Frame rate limiting
+        const elapsed = timestamp - this.lastFrameTime;
+
+        // Only update and render if enough time has passed for target FPS
+        if (elapsed >= this.frameInterval) {
+          // Update last frame time, accounting for any drift
+          this.lastFrameTime = timestamp - (elapsed % this.frameInterval);
+
+          this.update();
+          this.render();
+        }
+
+        this.animationId = requestAnimationFrame((ts) => this.animate(ts));
+      },
+
+      update() {
+        // Update mask scroll position (RIGHT TO LEFT)
+        this.maskScrollX -= this.maskScrollSpeed;
+
+        // Check if we've completed a full cycle
+        if (this.maskScrollX < this.scrollEndX) {
+          this.maskScrollX = this.scrollStartX;
+          this.maskCache = null; // Invalidate mask cache at loop
+
+          // If recording, stop after one complete cycle
+          if (this.isRecording) {
+            this.stopRecording();
+          }
+        }
+
+        // Update ALL foreground dots - they always drift left
+        this.foregroundDots.forEach(dot => {
+          dot.x -= this.maskDriftSpeed;
+
+          // Wrap around when going off left edge
+          if (dot.x < 0) {
+            dot.x += this.width;
+            // Randomize y position to maintain distribution
+            dot.y = Math.random() * this.height;
+            dot.brightness = 128 + Math.random() * 127;
+          }
+        });
+
+        // Update background dots based on noise type
+        if (this.noiseType === 'white') {
+          // Regenerate random positions for ALL background dots
+          this.backgroundDots.forEach(dot => {
+            dot.x = Math.random() * this.width;
+            dot.y = Math.random() * this.height;
+            dot.brightness = 128 + Math.random() * 127;
+          });
+        } else if (this.noiseType === 'static') {
+          // Drift slowly to the right (opposite of foreground)
+          this.backgroundDots.forEach(dot => {
+            dot.x += this.backgroundDriftSpeed;
+            if (dot.x >= this.width) {
+              dot.x -= this.width;
+              dot.y = Math.random() * this.height;
+              dot.brightness = 128 + Math.random() * 127;
+            }
+          });
+        }
+        // For 'none', background dots don't move
+      },
+
+      render() {
+        // Get cached or fresh mask
+        const maskImageData = this.getMaskImageData();
+        const maskData = maskImageData.data;
+
+        // Get frame buffer data
+        const bufferData = this.frameBuffer.data;
+        const len = bufferData.length;
+
+        // Clear frame buffer to black (much faster than fillRect)
+        for (let i = 0; i < len; i += 4) {
+          bufferData[i] = 0;     // R
+          bufferData[i + 1] = 0; // G
+          bufferData[i + 2] = 0; // B
+          bufferData[i + 3] = 255; // A
+        }
+
+        const dotSize = Math.floor(this.dotSize);
+        const width = this.width;
+        const height = this.height;
+
+        // Render background dots (NOT in mask) - write directly to buffer
+        const bgLen = this.backgroundDots.length;
+        for (let i = 0; i < bgLen; i++) {
+          const dot = this.backgroundDots[i];
+          const px = Math.floor(dot.x);
+          const py = Math.floor(dot.y);
+
+          if (px >= 0 && px < width && py >= 0 && py < height) {
+            const maskIdx = (py * width + px) * 4;
+            // Only draw if NOT in mask
+            if (maskData[maskIdx + 3] <= 128) {
+              const gray = Math.floor(dot.brightness);
+
+              // Optimized dot rendering - unrolled for common sizes
+              if (dotSize === 1) {
+                const bufIdx = (py * width + px) * 4;
+                bufferData[bufIdx] = gray;
+                bufferData[bufIdx + 1] = gray;
+                bufferData[bufIdx + 2] = gray;
+              } else if (dotSize === 2) {
+                // Manually unroll 2x2
+                let bufIdx = (py * width + px) * 4;
+                bufferData[bufIdx] = gray;
+                bufferData[bufIdx + 1] = gray;
+                bufferData[bufIdx + 2] = gray;
+                if (px + 1 < width) {
+                  bufIdx += 4;
+                  bufferData[bufIdx] = gray;
+                  bufferData[bufIdx + 1] = gray;
+                  bufferData[bufIdx + 2] = gray;
+                }
+                if (py + 1 < height) {
+                  bufIdx = ((py + 1) * width + px) * 4;
+                  bufferData[bufIdx] = gray;
+                  bufferData[bufIdx + 1] = gray;
+                  bufferData[bufIdx + 2] = gray;
+                  if (px + 1 < width) {
+                    bufIdx += 4;
+                    bufferData[bufIdx] = gray;
+                    bufferData[bufIdx + 1] = gray;
+                    bufferData[bufIdx + 2] = gray;
+                  }
+                }
+              } else {
+                // General case for larger dots
+                for (let dy = 0; dy < dotSize && py + dy < height; dy++) {
+                  for (let dx = 0; dx < dotSize && px + dx < width; dx++) {
+                    const bufIdx = ((py + dy) * width + (px + dx)) * 4;
+                    bufferData[bufIdx] = gray;
+                    bufferData[bufIdx + 1] = gray;
+                    bufferData[bufIdx + 2] = gray;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Render foreground dots (INSIDE mask) - write directly to buffer
+        const fgLen = this.foregroundDots.length;
+        for (let i = 0; i < fgLen; i++) {
+          const dot = this.foregroundDots[i];
+          const px = Math.floor(dot.x);
+          const py = Math.floor(dot.y);
+
+          if (px >= 0 && px < width && py >= 0 && py < height) {
+            const maskIdx = (py * width + px) * 4;
+            // Only draw if IN mask
+            if (maskData[maskIdx + 3] > 128) {
+              const gray = Math.floor(dot.brightness);
+
+              // Optimized dot rendering - unrolled for common sizes
+              if (dotSize === 1) {
+                const bufIdx = (py * width + px) * 4;
+                bufferData[bufIdx] = gray;
+                bufferData[bufIdx + 1] = gray;
+                bufferData[bufIdx + 2] = gray;
+              } else if (dotSize === 2) {
+                // Manually unroll 2x2
+                let bufIdx = (py * width + px) * 4;
+                bufferData[bufIdx] = gray;
+                bufferData[bufIdx + 1] = gray;
+                bufferData[bufIdx + 2] = gray;
+                if (px + 1 < width) {
+                  bufIdx += 4;
+                  bufferData[bufIdx] = gray;
+                  bufferData[bufIdx + 1] = gray;
+                  bufferData[bufIdx + 2] = gray;
+                }
+                if (py + 1 < height) {
+                  bufIdx = ((py + 1) * width + px) * 4;
+                  bufferData[bufIdx] = gray;
+                  bufferData[bufIdx + 1] = gray;
+                  bufferData[bufIdx + 2] = gray;
+                  if (px + 1 < width) {
+                    bufIdx += 4;
+                    bufferData[bufIdx] = gray;
+                    bufferData[bufIdx + 1] = gray;
+                    bufferData[bufIdx + 2] = gray;
+                  }
+                }
+              } else {
+                // General case for larger dots
+                for (let dy = 0; dy < dotSize && py + dy < height; dy++) {
+                  for (let dx = 0; dx < dotSize && px + dx < width; dx++) {
+                    const bufIdx = ((py + dy) * width + (px + dx)) * 4;
+                    bufferData[bufIdx] = gray;
+                    bufferData[bufIdx + 1] = gray;
+                    bufferData[bufIdx + 2] = gray;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Write entire frame buffer to canvas in one operation
+        this.ctx.putImageData(this.frameBuffer, 0, 0);
+      },
+
+      async startRecording() {
+        if (this.isRecording) return;
+
+        try {
+          const stream = this.canvas.captureStream(this.frameRate); // Use selected FPS
+
+          // Try VP9 first, fall back to VP8
+          // Increased bitrate to 15 Mbps to reduce banding in noise and mask edges
+          let options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 };
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 15000000 };
+          }
+
+          this.mediaRecorder = new MediaRecorder(stream, options);
+
+          this.recordedChunks = [];
+
+          this.mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              this.recordedChunks.push(event.data);
+            }
+          };
+
+          this.mediaRecorder.onstop = () => {
+            this.downloadRecording();
+          };
+
+          this.mediaRecorder.start();
+          this.isRecording = true;
+
+          // Update UI
+          document.getElementById('recordingIndicator').classList.add('active');
+          document.getElementById('recordButton').disabled = true;
+          document.getElementById('stopRecordButton').disabled = false;
+
+          // Reset and play
+          this.reset();
+          this.play();
+
+        } catch (error) {
+          console.error('Failed to start recording:', error);
+          alert('Recording failed. Your browser may not support video recording.');
+        }
+      },
+
+      stopRecording() {
+        if (!this.isRecording) return;
+
+        this.isRecording = false;
+        this.mediaRecorder.stop();
+        this.pause();
+
+        // Update UI
+        document.getElementById('recordingIndicator').classList.remove('active');
+        document.getElementById('recordButton').disabled = false;
+        document.getElementById('stopRecordButton').disabled = true;
+      },
+
+      downloadRecording() {
+        const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `veilocity_${this.aspectRatio.replace(':', 'x')}_${Date.now()}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    };
+
+    // Initialize app when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+      app.init();
+    });
+  </script>
+</body>
+</html>
