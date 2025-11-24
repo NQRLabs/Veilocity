@@ -291,24 +291,35 @@
 
     /* License modal styles */
     .license-footer {
-      margin-top: 30px;
-      margin-bottom: 20px;
+      border-top: 2px solid #b9c6ef33;
+      margin-top: 0px;
+      margin-bottom: 0px;
       padding: 10px 8px;
       font-size: 0.68rem;
       color: #a9a9b2;
       opacity: 0.7;
-      cursor: pointer;
-      transition: opacity 0.15s ease;
       text-align: center;
     }
 
-    .license-footer:hover { opacity: 1; }
+    .license-footer a {
+      color: var(--dim);
+      cursor: pointer;
+      text-decoration: none; 
+      transition: opacity 0.3s ease;
+    }
+    .license-footer a:hover {
+      color: #17b399;
+      cursor: pointer;
+      text-decoration: underline; 
+      opacity: 1;
+    }
 
     .license-overlay {
       display: none;
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
       z-index: 999;
     }
 
@@ -524,8 +535,13 @@
       <div class="info-hint">Records one complete scroll cycle</div>
     </div>
 
-    <div class="license-footer" id="licenseFooter">
-      MIT License © 2025 NQR &middot; Click to view
+    <div class="license-footer">
+      <a href="https://youtube.com/@CLU-NQR" target="_blank">YouTube</a> &middot;
+      <a href="https://discord.gg/HT9YE8rvuN" target="_blank">Discord</a> &middot;
+      <a href="https://nqrlabs.com" target="_blank">NQR Labs</a> &middot;
+      <a href="https://github.com/NQRLabs" target="_blank">GitHub</a>
+      <br>
+      &copy; 2025 NQR &middot; <a id="licenseFooter">License</a>
     </div>
   </div>
 
@@ -537,10 +553,13 @@
   <div class="license-overlay" id="licenseOverlay"></div>
   <div class="license-modal" id="licenseModal">
     <div class="license-modal-header">
-      <h2 class="license-modal-title">MIT License</h2>
+      <h2 class="license-modal-title">Veilocity License</h2>
       <div class="license-close" id="licenseClose">×</div>
     </div>
-    <div class="license-modal-text">Copyright (c) 2025 NQR
+    <div class="license-modal-text">
+Veilocity - MIT License
+
+Copyright &copy; 2025 NQR
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
